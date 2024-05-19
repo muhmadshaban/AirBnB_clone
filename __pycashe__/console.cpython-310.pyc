@@ -1,0 +1,81 @@
+o
+
+    �?]c  �                   @   s`   d Z ddlZdd lm Z  ddlmZ ddlZddlZG dd� dej� Z	e
+dkr.e	� ��  dS dS )z6Module for the entry point of the command interpreter.�    N)�	BaseModel)�storagec                   @   st   e Zd ZdZ dZd d� Zdd� Zdd� Zd	d
+� Zdd� Z	d
+d� Z
+dd� Zdd� Zdd� Z
+dd� Zdd� Zdd � ZdS ) �HBNBCommandz"Class for the command interpreter.z(hbnb) c                  C   s   | � |� dS )z,Catch commands if nothing else matches then.N)�_precmd��self�line� r	   �E/home/ehoneahobed/Projects/python_programming/AirBnB_clone/console.py�default   s    zHBNBCommand.defaultc           
+      C   s�   t �d|�}|s
+|S |�d�} |�d �}|�d�}t �d|�}|r,|�d�}|�d �}n|}d}d}	|dkrd|rdt �d	|�}
+|
+rL| � | ||
+�d��  dS t �d
+|�}|rd|�d�pZdd |�d �pbd }	|d |  d | d |	 }| �|� |S )z.Intercepts commands to test for class.syntax()z^(\w*)\.(\w+)(?:\(([^)]*)\))$�   �   �    z^"([^"]*)"(?:, (.*))?$F� �updatez^({.*})$z^(?:"([^"]*)")?(?:, (.*))?$� )�re�search�group�update_dict�onecmd)
+r   r   �match�	classname�method�args�match_uid_and_args� uid�attr_or_dict�attr_and_value�
+match_dict�match_attr_and_value�commandr	   r	   r
+   r      s@    
+
+
+
+���� 
+zHBNBCommand._precmdc           
+      C   s�   | � dd�}t�|�}|st d � dS |t�� vrt d� dS |du r)t d� dS d�||�}|t�� vr;t d� dS t�� | }|�	� D ]\}}	||v rS|| |	�}	t
+t�� | ||	�  qEt�� | ��  dS )	z-Helper method for update() with a dictionary.�'�"�** class name missing **�** class doesn't exist **N�** instance id missing **�{}.{}�** no instance found **)�replace�json�loads�printr    �classes�format� all�
+attributes�items�setattr�save)
+r   r   r    �s_dict�s�d� keyr0   �	attribute�valuer	   r	   r
+   r   6   s"   
+zHBNBCommand.update_dictc                 C   s
+   t �  dS )z'Handles End Of File character.
+        T)r,   r   r	   r	   r
+   �do_EOFL   s    zHBNBCommand.do_EOFc                 C   �   dS )zExits the program.
+        Tr	   r   r	   r	   r
+   �do_quitR   �    zHBNBCommand.do_quitc                 C   r;   )z&Doesn't do anything on ENTER.
+        Nr	   )r   r	   r	   r
+   �	emptylineW   r=   zHBNBCommand.emptylinec                   C   sX   |dks|du rt d � dS |t�� vr t d� dS t�� | � }|� �  t |j� dS )zCreates an instance.
+        r   Nr$   r%   )r,   r    r-   r3   �id) r   r   �br	   r	   r
+   �	do_create\   s    zHBNBCommand.do_createc                 C   s�   |dks|du rt d � dS |�d�}|d t� � vr!t d� dS t|�dk r-t d� dS d	�|d |d
+ �} | t�� vrCt d� dS t t�� |  � dS )z9Prints the string representation of an instance.
+        r   Nr$   r   r   r%   r
+   r&   r'   r   r(   )r,   �splitr    r-   � lenr.   r/   �r   r   �wordsr7   r	   r	   r
+   �do_showh   s    
+zHBNBCommand.do_showc                 C   s�   |dks|du rt d � dS |�d�}|d t� � vr!t d� dS t|�dk r-t d� dS d	�|d |d
+ �} | t�� vrCt d� dS t�� | = t��  dS )z<Deletes an instance based on the class name and id.
+        r   Nr$   r   r   r%   r
+   r&   r'   r   r(   )r,   rB   r    r-   rC   r.   r/   r3   rD   r	   r	   r
+   �
+do_destroyz   s    
+
+zHBNBCommand.do_destroyc                       sv   |dk r*|� d�� � d  t�� vrt d� dS � fdd�t�� �� D �}t |� dS dd� t�� �� D �}t |� dS )	z;Prints all string representation of all instances.
+        r   r   r   r%   c                     s*   g | ]\}}t |�j� d  krt|��qS )r   ) �type�__name__� str� �.0r7   � obj�rE   r	   r
+   �
+<listcomp>�   s    �z&HBNBCommand.do_all.<locals>.<listcomp>c                  S   s   g | ]\}}t |��qS r	   )rJ   rK   r	   r	   r
+   rO   �   s    N)rB   r    r-   r,   r/   r1   ) r   r   �lr	   rN   r
+   �do_all�   s    
+ zHBNBCommand.do_allc                       s`   |� d�� � d std � dS � d t� � vrtd� dS � fdd�t�� D �}tt|�� dS )z)Counts the instances of a class.
+        r   r   r$   r%   c                    s"   g | ]
+}|� � d  d �r|�qS )r   �.)�
+startswith)rL   �krN   r	   r
+   rO   �   s    
+���z(HBNBCommand.do_count.<locals>.<listcomp>N)rB   r,   r    r-   r/   rC   ) r   r   �matchesr	   rN   r
+   �do_count�   s   
+ 
+� zHBNBCommand.do_countc                 C   sr  |dks|du rt d � dS d}t�||�} | � d�}| � d�}| � d�}| � d�}| s2t d � dS |t�� vr>t d	� dS |du rHt d
+� dS d�||�}|t�� vrZt d� dS |sbt d
+� dS |sjt d� dS d}	t�d|�s|d|v ryt}	n	t	}	n|�
+dd�}t�� | }
+||
+v r�|
+| |�}n|	r�z|	|�}W n	 ty�   Y nw t
+t�� | ||�  t�� | ��  dS )z=Updates an instance by adding or updating attribute.
+        r   Nr$   z<^(\S+)(?:\s(\S+)(?:\s(\S+)(?:\s((?:"[^"]*")|(?:(\S)+)))?)?)?r   r
+   r   �   r%   r&   r'   r(   z ** attribute name missing **z** value missing **z^".*"$rR   r#   )r,   r   r   r   r    r-   r.   r/   �float� intr)   r0   �
+ValueErrorr2   r3   )r   r   � rexr   r   r    r8   r9   r7   �castr0   r	   r	   r
+   �	do_update�   sN    
+
+
+
+�zHBNBCommand.do_updateN)rI   �
+__module__�__qualname__�__doc__�promptr   r   r   r:   r<   r>   rA   rF   rG   rQ   rV   r]   r	   r	   r	   r
+   r      s     r   �__main__)r`   � cmd�models.base_modelr   �modelsr    r   r*   � Cmdr   rI   �cmdloopr	   r	   r	   r
+   �<module>   s     P�
